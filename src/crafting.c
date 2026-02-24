@@ -15,9 +15,12 @@ void getCraftingOutput (PlayerData *player, uint8_t *count, uint16_t *item) {
     return;
   }
 
+
+  // Each time a block is placed in crafting grid; recalculates the "first" item
   uint8_t i, filled = 0, first = 10, identical = true;
   for (i = 0; i < 9; i ++) {
     if (player->craft_items[i]) {
+      printf("DEBUG: craft_items[%d] = %u\n", i, player->craft_items[i]); fflush(stdout);
       filled ++;
       if (first == 10) first = i;
       else if (player->craft_items[i] != player->craft_items[first]) {
@@ -29,6 +32,9 @@ void getCraftingOutput (PlayerData *player, uint8_t *count, uint16_t *item) {
   uint16_t first_item = player->craft_items[first];
   uint8_t first_col = first % 3, first_row = first / 3;
 
+  // Look for all cases where the identical block is filling the crafting grid
+  // case 1 = 1 block in the crafting grid
+  // case 2 = 2 blocks in the crafting grid; decide which column/row should be empty
   switch (filled) {
 
     case 0:
@@ -269,6 +275,20 @@ void getCraftingOutput (PlayerData *player, uint8_t *count, uint16_t *item) {
         default: break;
       }
       break;
+
+    // na50r's note:
+    // Look for identical blocks in the grid
+    // Decide crafting result by checking the empty cells
+    // Caveman style crafting for the cost of memory right here, lol
+    case 6:
+    if (identical && player->craft_items[1] == 0 && player->craft_items[2] == 0 && player->craft_count[5] == 0) {
+      switch (first_item) {
+        case I_oak_planks: *item = I_oak_stairs; *count = 1; return;
+        case I_cobblestone: *item = I_cobblestone_stairs; *count = 1; return;
+        default: break;
+      }
+    }
+    break;
 
     case 7:
       // Legging recipes
