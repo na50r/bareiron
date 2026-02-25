@@ -510,6 +510,8 @@ void failBlockChange (short x, uint8_t y, short z, uint8_t block) {
 }
 
 uint8_t makeBlockChange (short x, uint8_t y, short z, uint8_t block) {
+  printf("DEBUG: makeBlockChange(x=%u, y=%u, z=%u, block=%u)\n", x, y, z, block);
+  fflush(stdout);
 
   // Transmit block update to all in-game clients
   for (int i = 0; i < MAX_PLAYERS; i ++) {
@@ -1353,6 +1355,9 @@ void handlePlayerUseItem (PlayerData *player, short x, short y, short z, uint8_t
     case 5: x += 1; break;
     default: break;
   }
+
+  printf("DEBUG: face=%u\n", face);
+  fflush(stdout);
 
   // Check if the block's placement conditions are met
   if (
