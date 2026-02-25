@@ -469,13 +469,35 @@ int sc_setContainerSlot (int client_fd, int window_id, uint16_t slot, uint8_t co
 
 // S->C Block Update
 int sc_blockUpdate (int client_fd, int64_t x, int64_t y, int64_t z, uint8_t block) {
-  writeVarInt(client_fd, 9 + sizeVarInt(block_palette[block]));
-  writeByte(client_fd, 0x08);
-  writeUint64(client_fd, ((x & 0x3FFFFFF) << 38) | ((z & 0x3FFFFFF) << 12) | (y & 0xFFF));
-  writeVarInt(client_fd, block_palette[block]);
+  sc_blockUpdateFace(client_fd, x, y, z, block, 0);
   return 0;
 }
 
+// S->C Block Update
+int sc_blockUpdateFace(int client_fd, int64_t x, int64_t y, int64_t z, uint8_t block, uint8_t face) {
+    uint16_t state_id = block_palette[block]; // default
+
+    // Special case for oak stairs
+    if (block == 135) {
+        switch(face) {
+            case 5: state_id = 2989; break; // west
+            case 2: state_id = 2969; break; // south
+            case 3: state_id = 2949; break; // north
+            case 4: state_id = 3009; break; // east
+            default: state_id = 2949; break; // fallback to north
+        }
+    }
+
+    writeVarInt(client_fd, 9 + sizeVarInt(state_id));
+    writeByte(client_fd, 0x08);
+    writeUint64(client_fd, ((x & 0x3FFFFFF) << 38) | ((z & 0x3FFFFFF) << 12) | (y & 0xFFF));
+    writeVarInt(client_fd, state_id);
+
+    printf("DEBUG: writeVarInt(client_fd, block=%u, face=%u -> state_id=%u)\n", block, face, state_id);
+    fflush(stdout);
+
+    return 0;
+}
 // S->C Acknowledge Block Change
 int sc_acknowledgeBlockChange (int client_fd, int sequence) {
   writeVarInt(client_fd, 1 + sizeVarInt(sequence));

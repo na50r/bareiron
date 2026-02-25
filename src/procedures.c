@@ -510,6 +510,11 @@ void failBlockChange (short x, uint8_t y, short z, uint8_t block) {
 }
 
 uint8_t makeBlockChange (short x, uint8_t y, short z, uint8_t block) {
+  makeBlockChangeFace(x, y, z, block, 0);
+  return 0;
+}
+
+uint8_t makeBlockChangeFace (short x, uint8_t y, short z, uint8_t block, uint8_t face) {
   printf("DEBUG: makeBlockChange(x=%u, y=%u, z=%u, block=%u)\n", x, y, z, block);
   fflush(stdout);
 
@@ -517,7 +522,7 @@ uint8_t makeBlockChange (short x, uint8_t y, short z, uint8_t block) {
   for (int i = 0; i < MAX_PLAYERS; i ++) {
     if (player_data[i].client_fd == -1) continue;
     if (player_data[i].flags & 0x20) continue;
-    sc_blockUpdate(player_data[i].client_fd, x, y, z, block);
+    sc_blockUpdateFace(player_data[i].client_fd, x, y, z, block, face);
   }
 
   // Calculate terrain at these coordinates and compare it to the input block.
@@ -1371,7 +1376,7 @@ void handlePlayerUseItem (PlayerData *player, short x, short y, short z, uint8_t
     (!isColumnBlock(block) || getBlockAt(x, y - 1, z) != B_air)
   ) {
     // Apply server-side block change
-    if (makeBlockChange(x, y, z, block)) return;
+    if (makeBlockChangeFace(x, y, z, block, face)) return;
     // Decrease item amount in selected slot
     *count -= 1;
     // Clear item id in slot if amount is zero
